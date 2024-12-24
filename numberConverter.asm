@@ -5,6 +5,7 @@
 	output_message: .asciiz "The number in the new system: "
 	error_message: .asciiz "Error: Number doesn't belong to the current system.\n"
 	RANGE_NUMBERS: .byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	
 	#current_system: .word 0
 	#number: .word 0
 	#new_system: .word 0
@@ -51,12 +52,15 @@
     		# Example usage: jal validate_number (this would be part of the extended implementation)
 
 		# 3- otherToDecimal function call
+		
+		
 
 		# Convert other to decimal: call OtherToDecimal function
     		# Example: 
-    		# lw $a0, number
-    		# lw $a1, current_system
-    		# jal OtherToDecimal
+    		 lw $a0, number
+    		 lw $a1, current_system
+    		 
+    		 jal OtherToDecimal
   
   		# 4- decimalToOther function call
 		
@@ -84,8 +88,7 @@
     		li $v0, 10
     		syscall
 
-		
-		
+				
 	
 	decimal_to_other_function:
 		la $t3,RANGE_NUMBERS # $t3 --> range number array
