@@ -23,7 +23,8 @@
     		# read the base of the number to conver to decimal
 		li $v0, 5
 		syscall
-		sw $v0, base_to_decimal    
+		# sw $v0, base_to_decimal
+		move $s7, $v0  # s7 --> old system   
 	
    		#prompt for number
     		li $v0, 4
@@ -54,7 +55,8 @@
 
 
 		# 3- otherToDecimal function call
-    		 jal other_to_decimal_function
+		move $a0, $s7
+    		jal other_to_decimal_function
     		 
     		 
   		# 4- decimalToOther function call
@@ -113,7 +115,7 @@
 		# adress of first char of number
 		la $s0, number_to_decimal
 		# base
-		lw $s1, base_to_decimal
+		move $s1, $a0
 		# temp char to proccess
 		lb $s2, 0($s0)
 		# length of num
