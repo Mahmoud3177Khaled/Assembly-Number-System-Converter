@@ -24,7 +24,7 @@
 		li $v0, 5
 		syscall
 		# sw $v0, base_to_decimal
-		move $s7, $v0  # s7 --> old system   
+		move $s7, $v0                                     # s7 --> old system   DON'T CHANGE VERY DANGEROUS
 	
    		#prompt for number
     		li $v0, 4
@@ -47,7 +47,7 @@
    		li $v0, 5
     		syscall
     		#sw $v0, new_system
-    		move $t8,$v0            # $t8 --> new system 
+    		move $t8,$v0                       # $t8 --> new system    DON'T CHANGE VERY DANGEROUS
 
 		# 2- validation function call
     		# Assuming validate_number belongs in current system: other function call placeholder
