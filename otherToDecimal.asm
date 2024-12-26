@@ -149,10 +149,41 @@ validate_number:
     li $t0, 1          # Load 1 into $t0
     blt $a0, $t0, invalid  # If number < 1, jump to invalid
 
-    # Check if number > 10
-    li $t1, 10         # Load 10 into $t1
-    bgt $a0, $t1, invalid  # If number > 10, jump to invalid
+    # Check if number > 16 (for hex)
+    li $t1, 16         # Load 16 into $t1
+    bgt $a0, $t1, invalid  # If number > 16, jump to invalid
 
+    # Check if the number is a valid hex digit (0-9, A-F)
+    li $t2, 48         # ASCII '0'
+    li $t3, 57         # ASCII '9'
+    li $t4, 65         # ASCII 'A'
+    li $t5, 70         # ASCII 'F'
+    li $t6, 97         # ASCII 'a'
+    li $t7, 102        # ASCII 'f'
+
+    # Check if the number is between '0' and '9'
+    blt $a0, $t2, invalid
+    bgt $a0, $t3, check_alpha
+
+    # If it's a valid digit, return 1
+    li $v0, 1          # Return 1 (valid)
+    jr $ra             # Return from function
+
+check_alpha:
+    # Check if the number is between 'A' and 'F'
+    blt $a0, $t4, check_lower
+    bgt $a0, $t5, check_lower
+
+    # If it's a valid hex digit (A-F), return 1
+    li $v0, 1          # Return 1 (valid)
+    jr $ra             # Return from function
+
+check_lower:
+    # Check if the number is between 'a' and 'f'
+    blt $a0, $t6, invalid
+    bgt $a0, $t7, invalid
+
+    # If it's a valid hex digit (a-f), return 1
     li $v0, 1          # Return 1 (valid)
     jr $ra             # Return from function
 
