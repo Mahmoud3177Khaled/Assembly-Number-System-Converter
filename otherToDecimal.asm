@@ -142,51 +142,68 @@
 		
 		li $v0, 10
 		syscall
+	
+	validate_number:
+		# Assume the first input line is the base in $a0
+		# Assume the second input line is the address of the number string in $a1
 
-validate_number:
-    # Assume the number to validate is in $a0
-    # Check if number < 1
-    li $t0, 1          # Load 1 into $t0
-    blt $a0, $t0, invalid  # If number < 1, jump to invalid
+		li $t0, 0              # Initialize valid digit counter to 0
+		li $t2, 0              # Initialize current character variable
 
-    # Check if number > 16 (for hex)
-    li $t1, 16         # Load 16 into $t1
-    bgt $a0, $t1, invalid  # If number > 16, jump to invalid
+	loop:
+		lb $t2, 0($a1)         # Load the next byte (character) from the input string
+		beqz $t2, end_loop     # If null terminator (end of string), jump to end_loop
 
-    # Check if the number is a valid hex digit (0-9, A-F)
-    li $t2, 48         # ASCII '0'
-    li $t3, 57         # ASCII '9'
-    li $t4, 65         # ASCII 'A'
-    li $t5, 70         # ASCII 'F'
-    li $t6, 97         # ASCII 'a'
-    li $t7, 102        # ASCII 'f'
+		# Convert character to numeric value
+		blt $t2, '0', invalid  # If character is less than '0', it's invalid
+		li $t3, '9'            # Load ASCII value of '9' into $t3
+		ble $t2, $t3, convert_digit # If character is between '0' and '9', convert it to a number
 
-    # Check if the number is between '0' and '9'
-    blt $a0, $t2, invalid
-    bgt $a0, $t3, check_alpha
+		# Handle uppercase letters 'A'-'F'
+		li $t4, 'A'            # Load ASCII value of 'A' into $t4
+		li $t5, 'F'            # Load ASCII value of 'F' into $t5
+		bge $t2, $t4           # If character is greater than or equal to 'A', check next condition
+		ble $t2, $t5, convert_alpha # If character is between 'A' and 'F', convert it to a number
 
-    # If it's a valid digit, return 1
-    li $v0, 1          # Return 1 (valid)
-    jr $ra             # Return from function
+		# Handle lowercase letters 'a'-'f'
+		li $t4, 'a'            # Load ASCII value of 'a' into $t4
+		li $t5, 'f'            # Load ASCII value of 'f' into $t5
+		bge $t2, $t4           # If character is greater than or equal to 'a', check next condition
+		ble $t2, $t5, convert_alpha_lower # If character is between 'a' and 'f', convert it to a number
 
-check_alpha:
-    # Check if the number is between 'A' and 'F'
-    blt $a0, $t4, check_lower
-    bgt $a0, $t5, check_lower
+		j invalid               # If character is not valid, jump to invalid label
 
-    # If it's a valid hex digit (A-F), return 1
-    li $v0, 1          # Return 1 (valid)
-    jr $ra             # Return from function
+	convert_digit:
+		sub $t6, $t2, '0'      # Convert ASCII character '0'-'9' to its numeric value (0-9)
+		j validate_base         # Jump to validate_base to check if it's valid for the base
 
-check_lower:
-    # Check if the number is between 'a' and 'f'
-    blt $a0, $t6, invalid
-    bgt $a0, $t7, invalid
+	convert_alpha:
+		sub $t6, $t2, 'A'      # Convert ASCII character 'A'-'F' to its numeric value (10-15)
+		addi $t6, $t6, 10      # Adjust value to be in the range 10-15
+		j validate_base         # Jump to validate_base to check if it's valid for the base
 
-    # If it's a valid hex digit (a-f), return 1
-    li $v0, 1          # Return 1 (valid)
-    jr $ra             # Return from function
+	convert_alpha_lower:
+		sub $t6, $t2, 'a'      # Convert ASCII character 'a'-'f' to its numeric value (10-15)
+		addi $t6, $t6, 10      # Adjust value to be in the range 10-15
 
-invalid:
-    li $v0, 0          # Return 0 (invalid)
-    jr $ra             # Return from function
+	validate_base:
+		blt $t6, $a0, next_char # If numeric value is less than the base, it's valid
+		j invalid               # Otherwise, jump to invalid label
+
+	next_char:
+		addi $t0, $t0, 1        # Increment valid digit counter
+		addi $a1, $a1, 1        # Move to the next character in the input string
+		j loop                   # Repeat the loop for the next character
+
+	invalid:
+		li $v0, 0               # Set return value to 0 (invalid number)
+		jr $ra                   # Return from the function
+
+	end_loop:
+		bgtz $t0, valid         # If valid digit counter > 0, jump to valid
+		li $v0, 0               # Otherwise, set return value to 0 (invalid)
+		jr $ra                   # Return from the function
+
+	valid:
+		li $v0, 1               # Set return value to 1 (valid number)
+		jr $ra                   # Return from the function
