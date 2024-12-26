@@ -142,3 +142,20 @@
 		
 		li $v0, 10
 		syscall
+
+validate_number:
+    # Assume the number to validate is in $a0
+    # Check if number < 1
+    li $t0, 1          # Load 1 into $t0
+    blt $a0, $t0, invalid  # If number < 1, jump to invalid
+
+    # Check if number > 10
+    li $t1, 10         # Load 10 into $t1
+    bgt $a0, $t1, invalid  # If number > 10, jump to invalid
+
+    li $v0, 1          # Return 1 (valid)
+    jr $ra             # Return from function
+
+invalid:
+    li $v0, 0          # Return 0 (invalid)
+    jr $ra             # Return from function
