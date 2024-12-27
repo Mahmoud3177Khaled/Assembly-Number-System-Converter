@@ -98,39 +98,46 @@
 			# char for comparison
 			lb $t2, 0($t0)
 			
+			# number for comparisons
 			li $s0, 48
 			li $s1, 57
 			li $s2, 65
 			li $s3, 70
 			li $s4, 10
 			
+			# loop that checks
 			subi $t0, $t0, 1
 			validate_loop:
+				
+				#get next char
 				addi $t0, $t0, 1
 				lb $t2, 0($t0)
 				
+				# exit condition
 				beq $t2, $s4, valid
 				
+				# number validations
 				bge $t2, $s0, check2
 				j invalid
 				check2:
 				ble $t2, $s1, validate_num
 				#j invalid
 				
+				# alpha validations
 				bge $t2, $s2, check2alpha
 				j invalid
 				check2alpha:
 				ble $t2, $s3, validate_alpha
 				j invalid
 				
-				
+				# base validation for numbers
 				validate_num:
 				subi $t2, $t2, 48
 				
 				bge $t2, $t1, invalid
 				j validate_loop
 				
-				
+				# base validation for alphabet letters
 				validate_alpha:
 				subi $t2, $t2, 55
 				
@@ -138,22 +145,20 @@
 				j validate_loop
 				
 			valid:
+				# continue app if valid
 				jr $ra
 				
 			invalid:
-			
+				
+				#error message if invalid
 	    			li $v0, 4
     				la $a0, not_valid_message
 	    			syscall
-	    		
+	    			
+	    			#then end append app 
 	    			li $v0, 10
 	    			syscall
 				
-			
-			
-			
-			
-
 	
 	other_to_decimal_function:
 		# get the string length
