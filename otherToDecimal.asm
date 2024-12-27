@@ -34,6 +34,13 @@
 		li $a1, 50
 		syscall
 		
+		# Validate the number based on the current base
+		lw $a0, base_to_decimal  # Load the base into $a0
+		la $a1, number_to_decimal # Load the address of the number string into $a1
+		jal validate_number        # Call the validation function
+
+		# Check the result of validation
+		beqz $v0, invalid_input    # If validation fails, jump to invalid_input
 		
 		# get the string length
 		
@@ -143,67 +150,79 @@
 		li $v0, 10
 		syscall
 	
+	invalid_input:
+		# Handle invalid input case
+		li $v0, 4
+		la $a0, prompt_num_test
+		syscall
+		# Print error message or handle accordingly
+		li $v0, 10
+		syscall
+	
+	# Subroutine: validate_number
+	# Parameters:
+	#   $a0 = base
+	#   $a1 = address of the number string
+	# Returns:
+	#   $v0 = 1 if valid, 0 if invalid
 	validate_number:
-		# Assume the first input line is the base in $a0
-		# Assume the second input line is the address of the number string in $a1
+		li $t0, 0              # Initialize valid digit counter
+		li $t2, 0              # Initialize current character
 
-		li $t0, 0              # Initialize valid digit counter to 0
-		li $t2, 0              # Initialize current character variable
-
-	loop:
-		lb $t2, 0($a1)         # Load the next byte (character) from the input string
-		beqz $t2, end_loop     # If null terminator (end of string), jump to end_loop
+	validate_loop:
+		lb $t2, 0($a1)         # Load byte from input string
+		beqz $t2, end_validate  # If null terminator, end loop
 
 		# Convert character to numeric value
-		blt $t2, '0', invalid  # If character is less than '0', it's invalid
-		li $t3, '9'            # Load ASCII value of '9' into $t3
-		ble $t2, $t3, convert_digit # If character is between '0' and '9', convert it to a number
+		blt $t2, '0', invalid   # Invalid if less than '0'
+		li $t3, '9'
+		ble $t2, $t3, convert_digit # If '0'-'9', convert to number
 
 		# Handle uppercase letters 'A'-'F'
-		li $t4, 'A'            # Load ASCII value of 'A' into $t4
-		li $t5, 'F'            # Load ASCII value of 'F' into $t5
-		bge $t2, $t4           # If character is greater than or equal to 'A', check next condition
-		ble $t2, $t5, convert_alpha # If character is between 'A' and 'F', convert it to a number
+		li $t4, 'A'
+		li $t5, 'F'
+		bge $t2, $t4            # If character >= 'A', check next condition
+		ble $t2, $t5, convert_alpha # If 'A'-'F', convert to number
 
-		# Handle lowercase letters 'a'-'f'
-		li $t4, 'a'            # Load ASCII value of 'a' into $t4
-		li $t5, 'f'            # Load ASCII value of 'f' into $t5
-		bge $t2, $t4           # If character is greater than or equal to 'a', check next condition
-		ble $t2, $t5, convert_alpha_lower # If character is between 'a' and 'f', convert it to a number
+		# Handle lowercase letters 'a'-'f' (if needed)
+		li $t4, 'a'
+		li $t5, 'f'
+		bge $t2, $t4            # If character >= 'a', check next condition
+		ble $t2, $t5, convert_alpha_lower # If 'a'-'f', convert to number
 
-		j invalid               # If character is not valid, jump to invalid label
+		j invalid                # Otherwise, invalid character
 
 	convert_digit:
-		sub $t6, $t2, '0'      # Convert ASCII character '0'-'9' to its numeric value (0-9)
-		j validate_base         # Jump to validate_base to check if it's valid for the base
+		sub $t6, $t2, '0'       # Convert '0'-'9' to numeric value
+		j validate_base          # Jump to validate_base
 
 	convert_alpha:
-		sub $t6, $t2, 'A'      # Convert ASCII character 'A'-'F' to its numeric value (10-15)
-		addi $t6, $t6, 10      # Adjust value to be in the range 10-15
-		j validate_base         # Jump to validate_base to check if it's valid for the base
+		sub $t6, $t2, 'A'       # Convert 'A'-'F' to numeric value (10-15)
+		addi $t6, $t6, 10       # Adjust value to be in the range 10-15
+		j validate_base          # Jump to validate_base
 
 	convert_alpha_lower:
-		sub $t6, $t2, 'a'      # Convert ASCII character 'a'-'f' to its numeric value (10-15)
-		addi $t6, $t6, 10      # Adjust value to be in the range 10-15
+		sub $t6, $t2, 'a'       # Convert 'a'-'f' to numeric value (10-15)
+		addi $t6, $t6, 10       # Adjust value to be in the range 10-15
 
 	validate_base:
-		blt $t6, $a0, next_char # If numeric value is less than the base, it's valid
-		j invalid               # Otherwise, jump to invalid label
+		blt $t6, $a0, next_char # Valid if numeric value < base
+		j invalid                # Otherwise, invalid character
 
 	next_char:
 		addi $t0, $t0, 1        # Increment valid digit counter
-		addi $a1, $a1, 1        # Move to the next character in the input string
-		j loop                   # Repeat the loop for the next character
+		addi $a1, $a1, 1        # Move to next character
+		j validate_loop          # Repeat the loop for the next character
 
 	invalid:
-		li $v0, 0               # Set return value to 0 (invalid number)
-		jr $ra                   # Return from the function
+		li $v0, 0                # Set return value to 0 (invalid number)
+		j end_validate            # Return from the function
 
-	end_loop:
-		bgtz $t0, valid         # If valid digit counter > 0, jump to valid
-		li $v0, 0               # Otherwise, set return value to 0 (invalid)
-		jr $ra                   # Return from the function
+	end_validate:
+		bgtz $t0, valid          # If digit counter > 0, valid
+		li $v0, 0                # Otherwise, set return value to 0 (invalid)
+		j end_validate            # Return from the function
 
 	valid:
-		li $v0, 1               # Set return value to 1 (valid number)
-		jr $ra                   # Return from the function
+		li $v0, 1                # Set return value to 1 (valid number)
+		j end_validate            # Return from the function
