@@ -54,22 +54,22 @@
     		# Assuming validate_number belongs in current system: other function call placeholder
     		# Example usage: jal validate_number (this would be part of the extended implementation)
     		
-    		#move $a0, $s7
-    		#la $a1, number_to_decimal
-    		#jal validate_number
+    		move $a0, $s7
+    		la $a1, number_to_decimal
+    		jal validate_number
     		
-    		#beq $v0, $zero, not_valid
-    		#j valid_number
+    		beq $v0, $zero, not_valid
+    		j valid_number
     		
-    		#not_valid:
-    		#	li $v0, 4
-    		#	la $a0, not_valid_message
-    		#	syscall
-    		#	
-    		#	li $v0, 10
-    		#	syscall
+    		not_valid:
+    			li $v0, 4
+    			la $a0, not_valid_message
+    			syscall
+    			
+    			li $v0, 10
+    			syscall
     		
-		#valid_number:
+		valid_number:
 
 		# 3- otherToDecimal function call
 		move $a0, $s7
