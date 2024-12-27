@@ -73,6 +73,7 @@
 
 		# 3- otherToDecimal function call
 		move $a0, $s7
+		la $a1, number_to_decimal
     		jal other_to_decimal_function
     		 
     		 
@@ -196,7 +197,7 @@ valid:
 		# start conversion
 		
 		# adress of first char of number
-		la $s0, number_to_decimal
+		move $s0, $a1
 		# base
 		move $s1, $a0
 		# temp char to proccess
